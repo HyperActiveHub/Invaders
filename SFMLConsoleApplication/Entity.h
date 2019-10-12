@@ -11,7 +11,7 @@ class Entity
 {
 public:
 	Entity(Game* game, std::string filename, Vector2f position, float radius, EntityType type, EntityFaction faction);
-	virtual ~Entity();
+	//virtual ~Entity();
 	virtual void update(float deltaTime);
 	virtual void collide(Entity* other);
 	float getRadius();
@@ -20,7 +20,7 @@ public:
 	EntityFaction getFaction();
 	void draw();
 
-private:
+protected:
 	void centerSprite();
 	Game* mGame;
 	Sprite mSprite;

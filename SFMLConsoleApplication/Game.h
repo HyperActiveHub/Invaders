@@ -44,6 +44,13 @@ private:
 	void spawnInvader(float deltaTime);
 	void spawnShip();
 	void destroyOldEntities();
+	bool overlap(Entity*, Entity*);
 	void collideEntities();
 	bool isOld(Entity* entity);
+	void handleWindowEvents();
+	void clearWindow();
+	void display();
+	void setFrameRate(unsigned int);
+	void updateTime(float deltaTime);
+	void updateEntities(float deltaTime);
 };

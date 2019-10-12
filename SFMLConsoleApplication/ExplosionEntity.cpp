@@ -2,11 +2,18 @@
 
 
 
-ExplosionEntity::ExplosionEntity()
+ExplosionEntity::ExplosionEntity(Game* game, Vector2f position) : 
+	Entity(game, "Explosion.psd", position, 0, EntityType::EFFECT, EntityFaction::NEUTRAL)
 {
+
 }
 
-
-ExplosionEntity::~ExplosionEntity()
+void ExplosionEntity::update(float deltaTime)
 {
+	//Show sprite for a set amount of time
+}
+
+void ExplosionEntity::collide(Entity* entity)
+{
+	//do nothing?
 }

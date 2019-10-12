@@ -1,4 +1,5 @@
 #include "InvaderEntity.h"
+#include "ExplosionEntity.h"
 
 using namespace std;
 using namespace sf;
@@ -35,6 +36,11 @@ void InvaderEntity::collide(Entity* other)
 	}
 }
 
+void InvaderEntity::handleMovement(float deltaTime)
+{
+	//Bounce of walls whilst moving downward
+}
+
 void InvaderEntity::handleFire(float deltaTime)
 {
 	mFireTime += deltaTime;
@@ -42,8 +48,4 @@ void InvaderEntity::handleFire(float deltaTime)
 	{
 		//fire again
 	}
-}
-
-InvaderEntity::~InvaderEntity()
-{
 }

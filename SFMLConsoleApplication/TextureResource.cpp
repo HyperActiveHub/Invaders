@@ -18,8 +18,3 @@ string TextureResource::getFilename()	//Unused?
 {
 	return mFilename;
 }
-
-TextureResource::~TextureResource()
-{
-
-}
