@@ -25,6 +25,8 @@ void InvaderEntity::update(float deltaTime)
 {
 	handleMovement(deltaTime);
 	handleFire(deltaTime);
+
+	Entity::update(deltaTime);
 }
 
 void InvaderEntity::collide(Entity* other)

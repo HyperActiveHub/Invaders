@@ -1,4 +1,5 @@
 #include "Entity.h"
+#include <iostream>
 
 using namespace std;
 
@@ -51,9 +52,11 @@ Vector2f Entity::getPosition()
 void Entity::collide(Entity* other)
 {
 	//Empty?
+	
 }
 
 void Entity::update(float deltaTime)
 {
 	//Move or empty?
+	mGame->getRenderWindow().draw(mSprite);
 }

@@ -3,6 +3,8 @@
 #include "InvaderEntity.h"		//Cirkulärt beroende kräver att dessa inkluderas i game.cpp istället för game.h, 
 //samt att framåtdeklarationer av typerna Entity, EnttiyType och EntityFaction.
 
+#include <iostream>
+
 using namespace std;
 using namespace sf;
 
@@ -30,12 +32,16 @@ Game::Game() :
 	mGameOver(false)
 {
 	setFrameRate(FRAMERATE);
+
+	ShipEntity* ship = new ShipEntity(this, getRenderWindow().getView().getCenter());
+	InvaderEntity* ship1 = new InvaderEntity(this, Vector2f(150, 150), Vector2f(10, 10));
+	mEntities.push_back(ship);
+	mEntities.push_back(ship1);
 }
 
 void Game::run()
 {
 	Clock clock;
-
 	while (!mGameOver && mRenderWindow.isOpen())
 	{
 		float deltaTime = clock.restart().asSeconds();
@@ -77,7 +83,7 @@ void Game::collideEntities()
 	{
 		Entity* entity0 = visibleEntities[i];
 
-		for (EntityVector::size_type j = 0; j < visibleEntities.size(); j++)
+		for (EntityVector::size_type j = i + 1; j < visibleEntities.size(); j++)
 		{
 			Entity* entity1 = visibleEntities[j];
 
@@ -104,8 +110,41 @@ bool Game::overlap(Entity* ent0, Entity* ent1)
 
 EntityVector Game::getVisibleEntities()
 {
+	EntityVector visibleEntities;
 
-	return /*temp*/ EntityVector();
+	for (auto entity : mEntities)
+	{
+		if (isVisible(entity))
+		{
+			visibleEntities.push_back(entity);
+		}
+		else
+			mOldEntities.push_back(entity);
+	}
+
+	return visibleEntities;
+}
+
+bool Game::isVisible(Entity* entity)
+{
+	if (entity->getPosition().x > getRenderWindow().getSize().x - entity->getRadius())
+	{
+		return false;
+	}
+	else if (entity->getPosition().x < entity->getRadius())
+	{
+		return false;
+	}
+	else if (entity->getPosition().y > getRenderWindow().getSize().y - entity->getRadius())
+	{
+		return false;
+	}
+	else if (entity->getPosition().y < entity->getRadius())
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void Game::destroyOldEntities()
@@ -171,6 +210,8 @@ void Game::updateEntities(float deltaTime)
 	{
 		entity->update(deltaTime);
 	}
+
+	collideEntities();
 }
 
 void Game::add(Entity* entity)

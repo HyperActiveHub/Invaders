@@ -14,7 +14,7 @@ private:
 	void handleFire(float deltaTime);
 	float mFireDelta;
 	float mFireTime;
-	sf::Vector2f mDirection;
 	float mVelocity;
+	sf::Vector2f mDirection;
 };
 
