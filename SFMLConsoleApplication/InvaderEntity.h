@@ -5,6 +5,7 @@ class InvaderEntity : public Entity
 {
 public:
 	InvaderEntity(Game *game, sf::Vector2f position, sf::Vector2f direction);
+	~InvaderEntity();
 	virtual void update(float deltaTime) override;
 	virtual void collide(Entity* other) override;
 

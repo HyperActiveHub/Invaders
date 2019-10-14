@@ -33,10 +33,7 @@ Game::Game() :
 {
 	setFrameRate(FRAMERATE);
 
-	ShipEntity* ship = new ShipEntity(this, getRenderWindow().getView().getCenter());
-	InvaderEntity* ship1 = new InvaderEntity(this, Vector2f(150, 150), Vector2f(10, 10));
-	mEntities.push_back(ship);
-	mEntities.push_back(ship1);
+	createShip();
 }
 
 void Game::run()
@@ -47,6 +44,8 @@ void Game::run()
 		float deltaTime = clock.restart().asSeconds();
 		handleWindowEvents();
 		clearWindow();
+		destroyOldEntities();
+		addNewEntities();
 		updateTime(deltaTime);
 		updateEntities(deltaTime);
 		display();
@@ -73,6 +72,18 @@ Texture& Game::getTexture(string filename)
 	TextureResource* textureResource = new TextureResource(filename, tex);
 	mTextureResources.push_back(textureResource);
 	return textureResource->getTexture();
+}
+
+void Game::createShip() 
+{
+	ShipEntity* ship = new ShipEntity(this, getRenderWindow().getView().getCenter());
+	mEntities.push_back(ship);
+}
+
+void Game::createInvader(Vector2f position, Vector2f direction)
+{
+	InvaderEntity* invader = new InvaderEntity(this, position, direction);
+	add(invader);
 }
 
 void Game::collideEntities()
@@ -118,8 +129,6 @@ EntityVector Game::getVisibleEntities()
 		{
 			visibleEntities.push_back(entity);
 		}
-		else
-			mOldEntities.push_back(entity);
 	}
 
 	return visibleEntities;
@@ -165,6 +174,16 @@ void Game::destroyOldEntities()
 	mEntities = remainingEntities;
 }
 
+void Game::addNewEntities()
+{
+	for (auto entity : mNewEntities)
+	{
+		mEntities.push_back(entity);
+	}
+
+	mNewEntities.clear();
+}
+
 bool Game::isOld(Entity* entity)
 {
 	for (auto oldEntity : mOldEntities)
@@ -202,6 +221,12 @@ void Game::display()
 void Game::updateTime(float deltaTime)
 {
 	//clock.reset? stuff?
+	mTime += deltaTime;
+	if (mSpawnTime < mTime)
+	{
+		createInvader(Vector2f(300, 150), Vector2f(-1, 1));
+		mTime = 0;
+	}
 }
 
 void Game::updateEntities(float deltaTime)

@@ -1,7 +1,9 @@
+#pragma once
 #include "Game.h"
 #include <string>
 #include "SFML/Graphics.hpp"
-#pragma once
+#include <iostream>
+
 using namespace sf;
 
 enum class EntityType { PROJECTILE, SHIP, EFFECT };
@@ -11,7 +13,7 @@ class Entity
 {
 public:
 	Entity(Game* game, std::string filename, Vector2f position, float radius, EntityType type, EntityFaction faction);
-	//virtual ~Entity();
+	virtual ~Entity();
 	virtual void update(float deltaTime);
 	virtual void collide(Entity* other);
 	float getRadius();

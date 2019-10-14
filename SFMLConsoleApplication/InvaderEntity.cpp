@@ -21,6 +21,11 @@ InvaderEntity::InvaderEntity(Game* game, Vector2f position, Vector2f direction) 
 
 }
 
+InvaderEntity::~InvaderEntity()
+{
+	cout << "Destroyed Invader" << endl;
+}
+
 void InvaderEntity::update(float deltaTime)
 {
 	handleMovement(deltaTime);
@@ -40,7 +45,22 @@ void InvaderEntity::collide(Entity* other)
 
 void InvaderEntity::handleMovement(float deltaTime)
 {
-	//Bounce of walls whilst moving downward
+	if (getPosition().y > mGame->getRenderWindow().getSize().y)	//Destroy invader when out of bounds (will only happen when it reaches the bottom of the window).
+	{
+		mGame->remove(this);
+	}
+	
+	//Bounce of walls
+	if (mDirection.x > 0 && mGame->getRenderWindow().getSize().x < getPosition().x + mRadius)
+	{
+		mDirection.x *= -1;
+	}
+	else if (mDirection.x < 0 && getPosition().x - mRadius < 0)
+	{
+		mDirection.x *= -1;
+	}
+
+	mSprite.move(mDirection * mVelocity * deltaTime);
 }
 
 void InvaderEntity::handleFire(float deltaTime)

@@ -41,9 +41,12 @@ private:
 	bool mGameOver;
 
 	EntityVector getVisibleEntities();
+	void createShip();
+	void createInvader(Vector2f position, Vector2f direction);
 	void spawnInvader(float deltaTime);
 	void spawnShip();
 	void destroyOldEntities();
+	void addNewEntities();
 	bool overlap(Entity*, Entity*);
 	void collideEntities();
 	bool isOld(Entity* entity);

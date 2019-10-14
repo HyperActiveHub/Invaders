@@ -1,5 +1,4 @@
 #include "ShipEntity.h"
-#include <iostream>
 
 namespace 
 {

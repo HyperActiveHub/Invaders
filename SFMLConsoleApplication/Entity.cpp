@@ -14,10 +14,16 @@ Entity::Entity(Game* game, string filename, Vector2f position, float radius, Ent
 	mSprite.setPosition(position);
 }
 
-//void Entity::update(float deltaTime)
-//{
-//
-//}
+Entity::~Entity()
+{
+	
+}
+
+void Entity::update(float deltaTime)
+{
+	//Move or empty?
+	mGame->getRenderWindow().draw(mSprite);
+}
 
 void Entity::centerSprite()
 {
@@ -53,10 +59,4 @@ void Entity::collide(Entity* other)
 {
 	//Empty?
 	
-}
-
-void Entity::update(float deltaTime)
-{
-	//Move or empty?
-	mGame->getRenderWindow().draw(mSprite);
 }
