@@ -21,7 +21,6 @@ Entity::~Entity()
 
 void Entity::update(float deltaTime)
 {
-	//Move or empty?
 	mGame->getRenderWindow().draw(mSprite);
 }
 

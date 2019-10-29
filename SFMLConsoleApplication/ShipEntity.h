@@ -11,6 +11,8 @@ public:
 	~ShipEntity();
 	virtual void update(float deltaTime) override;
 	virtual void collide(Entity* other) override;
+	void addFirePower();
+	void decreaseFirePower();
 
 private:
 	Vector2f input();
@@ -18,9 +20,12 @@ private:
 	void handleMovement(Vector2f input, float deltaTime);
 
 	void handleFire(float deltaTime);
+	vector<Vector2f> getBulletDirs(int max, float offset);
+	vector<Vector2f> mBulletDirs;
 	float mFireDelta;
 	float mFireTime;
 	float mVelocity;
+	int mFirePwr;
 
 };
 

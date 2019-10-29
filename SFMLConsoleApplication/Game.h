@@ -42,7 +42,7 @@ private:
 
 	EntityVector getVisibleEntities();
 	void createShip();
-	void createInvader(Vector2f position, Vector2f direction);
+	void createInvader();
 	void spawnInvader(float deltaTime);
 	void spawnShip();
 	void destroyOldEntities();
@@ -56,4 +56,6 @@ private:
 	void setFrameRate(unsigned int);
 	void updateTime(float deltaTime);
 	void updateEntities(float deltaTime);
+	void initRand();
+	int randValue(int min, int max);
 };

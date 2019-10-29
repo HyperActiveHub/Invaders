@@ -9,5 +9,6 @@ public:
 private:
 	virtual void update(float deltaTime) override;
 	virtual void collide(Entity*) override;
+	float mTime;
 };
 

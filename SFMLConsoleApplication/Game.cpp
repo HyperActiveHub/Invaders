@@ -32,6 +32,7 @@ Game::Game() :
 	mGameOver(false)
 {
 	setFrameRate(FRAMERATE);
+	initRand();
 
 	createShip();
 }
@@ -74,16 +75,33 @@ Texture& Game::getTexture(string filename)
 	return textureResource->getTexture();
 }
 
-void Game::createShip() 
+void Game::createShip()
 {
 	ShipEntity* ship = new ShipEntity(this, getRenderWindow().getView().getCenter());
 	mEntities.push_back(ship);
 }
 
-void Game::createInvader(Vector2f position, Vector2f direction)
+void Game::createInvader()
 {
-	InvaderEntity* invader = new InvaderEntity(this, position, direction);
+	int x = getRenderWindow().getSize().x;
+	int y = -50;	//Temp y-axis spawnPos.
+	Vector2f spawnPos((int)randValue(0, x), y);
+	Vector2f direction(0, 1);
+
+	if (x - spawnPos.x < x * 0.5f)	//If the spawnPos is closer to the right side, the direction is set to left and vice versa.
+	{
+		direction.x = -1;
+	}
+	else
+		direction.x = 1;
+	
+	InvaderEntity* invader = new InvaderEntity(this, spawnPos, direction);
 	add(invader);
+}
+
+int Game::randValue(int min, int max)
+{
+	return rand() % max + min;
 }
 
 void Game::collideEntities()
@@ -224,7 +242,7 @@ void Game::updateTime(float deltaTime)
 	mTime += deltaTime;
 	if (mSpawnTime < mTime)
 	{
-		createInvader(Vector2f(300, 150), Vector2f(-1, 1));
+		createInvader();
 		mTime = 0;
 	}
 }
@@ -252,4 +270,9 @@ void Game::remove(Entity* entity)
 void Game::setFrameRate(unsigned int rate)
 {
 	mRenderWindow.setFramerateLimit(rate);
+}
+
+void Game::initRand()
+{
+	srand((unsigned int)time(0));
 }
