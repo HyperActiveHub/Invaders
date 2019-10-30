@@ -17,5 +17,6 @@ private:
 
 	bool isOutOfBounds();
 	void setRotation();
+	void setColor();
 };
 

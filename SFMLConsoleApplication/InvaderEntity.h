@@ -8,11 +8,12 @@ public:
 	~InvaderEntity();
 	virtual void update(float deltaTime) override;
 	virtual void collide(Entity* other) override;
-
+	virtual void die() override;
 private:
 
 	void handleMovement(float deltaTime);
 	void handleFire(float deltaTime);
+	void dropPickup();
 	float mFireDelta;
 	float mFireTime;
 	float mVelocity;

@@ -7,22 +7,31 @@ namespace
 	const float RADIUS = 30.0f; //placeholder
 	const float FIRE_DELTA = 0.5f;
 	const float VELOCITY = 300.0f;
+	const int ANIMATION_FPS = 12;
+	const float THRUSTER_HEIGHT_OFFSET = 18.0f;
+	const float THRUSTER_WIDTH_OFFSET = 18.0f;
 }
 
 ShipEntity::ShipEntity(Game* game, Vector2f position) :
 	Entity(game, "Ship.psd", position, RADIUS, EntityType::SHIP, EntityFaction::FRIEND),
+	mAnimSprite(mGame->getTexture("ThrusterSheet.png")),
+	mSecondaryThruster(),
 	mFireDelta(FIRE_DELTA),
 	mFireTime(0.0f),
 	mVelocity(VELOCITY),
 	mFirePwr(1),
-	mBulletDirs(1, Vector2f(0, -1))
+	mAnimTimer(0),
+	mAnimSpeed(ANIMATION_FPS),
+	mBulletDirs(1, Vector2f(0, -1)),
+	sourceRect(0, 0, 16, 16)
 {
-	std::cout << "Hello Ship." << std::endl;
+	mAnimSprite.setTextureRect(sourceRect);
+	mAnimSprite.setOrigin(mAnimSprite.getLocalBounds().width * 0.5f, mAnimSprite.getLocalBounds().height * 0.5f);
 }
 
 ShipEntity::~ShipEntity()
 {
-	std::cout << "Goodbye Ship." << std::endl;
+
 }
 
 void ShipEntity::update(float deltaTime)
@@ -31,23 +40,22 @@ void ShipEntity::update(float deltaTime)
 	constrainPosition(inputVector);
 	handleMovement(inputVector, deltaTime);
 	handleFire(deltaTime);
+	handleAnim(deltaTime);
+}
 
-	Entity::update(deltaTime);
+void ShipEntity::draw()
+{
+	mGame->getRenderWindow().draw(mSprite);
+	mGame->getRenderWindow().draw(mAnimSprite);
+	mGame->getRenderWindow().draw(mSecondaryThruster);
 }
 
 void ShipEntity::collide(Entity* other)
 {
-	//game over?
-	//string str = typeid(*other).name();
-	//str.replace(0, 6, "");	//remove "class" from type-name.
-	//std::cout << "Player collided with " << str << std::endl;
-
-	if (other->getFaction() == EntityFaction::ENEMY && other->getType() != EntityType::EFFECT)
+	if (other->getFaction() == EntityFaction::ENEMY)
 	{
-		mGame->add(new ExplosionEntity(mGame, mSprite.getPosition()));
-		mGame->remove(this);
+		die();
 	}
-
 }
 
 Vector2f ShipEntity::input()
@@ -96,6 +104,29 @@ void ShipEntity::constrainPosition(Vector2f& input)
 void ShipEntity::handleMovement(Vector2f input, float deltaTime)
 {
 	mSprite.move(input * mVelocity * deltaTime);
+	Vector2f offset1(THRUSTER_WIDTH_OFFSET, THRUSTER_HEIGHT_OFFSET);
+	Vector2f offset2(-THRUSTER_WIDTH_OFFSET, THRUSTER_HEIGHT_OFFSET);
+
+	mSecondaryThruster = mAnimSprite;
+	mAnimSprite.setPosition(getPosition() + offset1);
+	mSecondaryThruster.setPosition(getPosition() + offset2);
+}
+
+void ShipEntity::handleAnim(float deltaTime)
+{
+	mAnimTimer += deltaTime;
+	if (mAnimTimer > 1 / mAnimSpeed)
+	{
+		if (sourceRect.left != sourceRect.width * 3)
+		{
+			sourceRect.left += sourceRect.width;
+		}
+		else
+			sourceRect.left = 0;
+
+		mAnimSprite.setTextureRect(sourceRect);
+		mAnimTimer = 0;
+	}
 }
 
 void ShipEntity::handleFire(float deltaTime)
@@ -124,8 +155,11 @@ void ShipEntity::addFirePower()	//Called when player picks up a pwr-up.
 
 void ShipEntity::decreaseFirePower()	//Called when player picks up a pwr-down debuff.
 {
-	mFirePwr -= 2;
-	mBulletDirs = getBulletDirs(mFirePwr, -45.0f);
+	if (mFirePwr > 1)
+	{
+		mFirePwr -= 2;
+		mBulletDirs = getBulletDirs(mFirePwr, -45.0f);
+	}
 }
 
 ///<summary>
@@ -147,7 +181,7 @@ vector<Vector2f> ShipEntity::getBulletDirs(int max, float offsetDegrees)
 		cout << "Error. mFirePwr should always be an uneven number." << endl;
 	}
 	float deltaTo90 = (90 - offsetDegrees) / max;
-	int medianIndex = ceil(max * 0.5f);
+	int medianIndex = (int)ceil(max * 0.5f);
 	float median = medianIndex * deltaTo90 + offsetDegrees; //gets the middle value
 	float offset = 90 - median;	//the offset required to make the centered bullet fire at a 90 degree angle.
 
@@ -165,10 +199,17 @@ vector<Vector2f> ShipEntity::getBulletDirs(int max, float offsetDegrees)
 			angle = i * deltaTo90 + offsetDegrees + deltaTo90;
 			angle += offset;
 
-			float radians = angle * 3.1416 / 180.0f;
+			float radians = angle * 3.1416f / 180.0f;
 			direction = Vector2f((float)cos(radians), -(float)sin(radians));	//Convert from (float) degrees to a normalized Vector2f.
 		}
 		directions.push_back(direction);
 	}
 	return directions;
+}
+
+void ShipEntity::die()
+{
+	//Game Over
+	mGame->add(new ExplosionEntity(mGame, mSprite.getPosition(), mFaction));
+	Entity::die();
 }

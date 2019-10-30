@@ -7,12 +7,19 @@ namespace
 }
 
 BulletEntity::BulletEntity(Game* game, Vector2f position, Vector2f direction, EntityFaction faction) :
-	Entity(game, "Bullet.psd", position, RADIUS, EntityType::PROJECTILE, faction),
+	Entity(game, "Bullet.png", position, RADIUS, EntityType::PROJECTILE, faction),
 	mDirection(direction),
 	mVelocity(VELOCITY)
 {
-	//setRotation();
+	setRotation();
+	setColor();
 	mGame->add(this);
+
+	//Every bullet costs the player some score (10?). This makes the player think before he shoots instead of spamming. This also makes the player consider if he should pick up a pwr-up.
+	if (faction == EntityFaction::FRIEND)
+	{
+		mGame->decreaseScore();
+	}
 }
 
 void BulletEntity::update(float deltaTime)
@@ -23,16 +30,13 @@ void BulletEntity::update(float deltaTime)
 	}
 
 	mSprite.move(mVelocity * mDirection * deltaTime);
-
-	Entity::update(deltaTime);
 }
 
 void BulletEntity::collide(Entity* other)
 {
-	if (other->getFaction() != mFaction && other->getType() == EntityType::SHIP)	//Destroy other if other is not part of same faction as the bullet.
+	if (other->getFaction() != mFaction && other->getType() == EntityType::SHIP)	//Destroy hit ship if its not part of same faction as the bullet.
 	{
-		cout << "bullet hit its target" << endl;
-		mGame->remove(this);
+		die();
 	}
 }
 
@@ -59,11 +63,27 @@ bool BulletEntity::isOutOfBounds()
 
 void BulletEntity::setRotation()	//Makes the bullet rotate toward the direction its being shot in.
 {
-	//arg(z) = tan - 1(y / x)
-	mSprite.setRotation(atan(mDirection.y / mDirection.x));	//Test/Debug this..
+	//arg(z) = arctan(y / x)
+	double radians = atan(mDirection.y / mDirection.x);
+	double angle = 90 + radians * 180 / 3.1416;
+	mSprite.setRotation((float)angle);
+}
+
+void BulletEntity::setColor()
+{
+	switch (mFaction)
+	{
+	case EntityFaction::FRIEND:
+		mSprite.setColor(Color::Green);
+		break;
+
+	case EntityFaction::ENEMY:
+		mSprite.setColor(Color::Red);
+		break;
+	}
 }
 
 BulletEntity::~BulletEntity()
 {
-	cout << "destroyed bullet" << endl;
+	//cout << "destroyed bullet" << endl;
 }

@@ -10,14 +10,19 @@ using namespace sf;
 
 namespace
 {
-	const float ENEMY_SPAWN_TIME = 10.0f;	//placeholder
-	const float ENEMY_SPAWN_DELTA = 5.0f;	//placeholder
+	enum class GameState { ingame, paused, gameOver };
+	GameState currentState = GameState::ingame;
+
+	const float ENEMY_SPAWN_DELTA = 2.0f;	//placeholder
+	const float ENEMY_DELTA_DECREASE_RATE = 0.99f;
+
+	const int ENEMY_VALUE = 100;
+	const int BULLET_COST = 10;
 
 	const unsigned int FRAMERATE = 144;
 
 	const string windowTitle = "Invaders";
 	const VideoMode videoMode = VideoMode(768, 1024);
-
 }
 
 Game::Game() :
@@ -27,12 +32,17 @@ Game::Game() :
 	mOldEntities(),
 	mNewEntities(),
 	mTime(0),
-	mSpawnTime(ENEMY_SPAWN_TIME),
 	mSpawnDelta(ENEMY_SPAWN_DELTA),
-	mGameOver(false)
+	mScore(0),
+	mFont(loadFont("SHOWG.TTF")),
+	mPauseText(),
+	mGoText(),
+	mRestartText(),
+	mScoreText()
 {
 	setFrameRate(FRAMERATE);
 	initRand();
+	textInit();
 
 	createShip();
 }
@@ -40,22 +50,72 @@ Game::Game() :
 void Game::run()
 {
 	Clock clock;
-	while (!mGameOver && mRenderWindow.isOpen())
+	float deltaTime;
+
+	while (mRenderWindow.isOpen())
 	{
-		float deltaTime = clock.restart().asSeconds();
-		handleWindowEvents();
-		clearWindow();
-		destroyOldEntities();
-		addNewEntities();
-		updateTime(deltaTime);
-		updateEntities(deltaTime);
-		display();
+		switch (currentState)
+		{
+		case GameState::ingame:
+			deltaTime = clock.restart().asSeconds();
+			handleWindowEvents();
+			update(deltaTime);
+			drawIngame();
+			break;
+
+		case GameState::paused:
+			clock.restart();
+			handleWindowEvents();
+			drawPaused();
+			break;
+
+		case GameState::gameOver:
+			deltaTime = clock.restart().asSeconds();
+			handleWindowEvents();
+			update(deltaTime);
+			drawGameOver();
+			break;
+		}
 	}
 }
 
 RenderWindow& Game::getRenderWindow()
 {
 	return mRenderWindow;
+}
+
+void Game::drawIngame()
+{
+	drawEntities();
+	mRenderWindow.draw(mScoreText);
+	display();
+}
+
+void Game::drawPaused()
+{
+	drawEntities();
+	mRenderWindow.draw(mPauseText);
+	mRenderWindow.draw(mScoreText);
+	display();
+}
+
+void Game::drawGameOver()
+{
+	editText(mFinalScoreText, "Final Score: " + to_string(mScore), Vector2f(mRenderWindow.getSize().x * 0.5f, 300), Color::White, 50);
+	drawEntities();
+	mRenderWindow.draw(mGoText);
+	mRenderWindow.draw(mRestartText);
+	mRenderWindow.draw(mFinalScoreText);
+	display();
+}
+
+void Game::update(float deltaTime)
+{
+	destroyOldEntities();
+	addNewEntities();
+	updateTime(deltaTime);
+	updateEntities(deltaTime);
+	updateScore();
 }
 
 Texture& Game::getTexture(string filename)
@@ -68,9 +128,13 @@ Texture& Game::getTexture(string filename)
 		}
 	}
 
-	Texture tex;
-	tex.loadFromFile(filename);
-	TextureResource* textureResource = new TextureResource(filename, tex);
+	Image image;
+	image.loadFromFile(filename);
+	image.createMaskFromColor(Color::Magenta);	//Needed for transparancy in images using a color.
+	Texture texture;
+	texture.loadFromImage(image);
+	texture.setSmooth(true);
+	TextureResource* textureResource = new TextureResource(filename, texture);
 	mTextureResources.push_back(textureResource);
 	return textureResource->getTexture();
 }
@@ -83,9 +147,9 @@ void Game::createShip()
 
 void Game::createInvader()
 {
-	int x = getRenderWindow().getSize().x;
+	int x = randValue(0, getRenderWindow().getSize().x);
 	int y = -50;	//Temp y-axis spawnPos.
-	Vector2f spawnPos((int)randValue(0, x), y);
+	Vector2f spawnPos((float)x, (float)y);
 	Vector2f direction(0, 1);
 
 	if (x - spawnPos.x < x * 0.5f)	//If the spawnPos is closer to the right side, the direction is set to left and vice versa.
@@ -94,7 +158,7 @@ void Game::createInvader()
 	}
 	else
 		direction.x = 1;
-	
+
 	InvaderEntity* invader = new InvaderEntity(this, spawnPos, direction);
 	add(invader);
 }
@@ -223,6 +287,31 @@ void Game::handleWindowEvents()
 		{
 			mRenderWindow.close();
 		}
+
+		if (event.type == Event::KeyPressed)
+		{
+			if (event.key.code == Keyboard::Escape)
+			{
+				if (currentState == GameState::paused)
+				{
+					currentState = GameState::ingame;
+				}
+				else if (currentState == GameState::ingame)
+				{
+					currentState = GameState::paused;
+				}
+				else if (currentState == GameState::gameOver)
+				{
+					destroyAllEntities();
+					mRenderWindow.close();
+				}
+			}
+			else if (currentState == GameState::gameOver && event.key.code == Keyboard::Space)
+			{
+				restartGame();
+				currentState = GameState::ingame;
+			}
+		}
 	}
 }
 
@@ -240,10 +329,12 @@ void Game::updateTime(float deltaTime)
 {
 	//clock.reset? stuff?
 	mTime += deltaTime;
-	if (mSpawnTime < mTime)
+	if (mSpawnDelta < mTime)
 	{
 		createInvader();
 		mTime = 0;
+		mSpawnDelta *= ENEMY_DELTA_DECREASE_RATE;
+		cout << mSpawnDelta << endl;
 	}
 }
 
@@ -255,6 +346,16 @@ void Game::updateEntities(float deltaTime)
 	}
 
 	collideEntities();
+}
+
+void Game::drawEntities()
+{
+	clearWindow();
+
+	for (auto entity : mEntities)
+	{
+		entity->draw();
+	}
 }
 
 void Game::add(Entity* entity)
@@ -275,4 +376,82 @@ void Game::setFrameRate(unsigned int rate)
 void Game::initRand()
 {
 	srand((unsigned int)time(0));
+}
+
+void Game::increaseScore()
+{
+	mScore += ENEMY_VALUE;
+}
+
+void Game::decreaseScore()
+{
+	mScore -= BULLET_COST;
+}
+
+void Game::restartGame()
+{
+	destroyAllEntities();
+	createShip();
+	mSpawnDelta = ENEMY_SPAWN_DELTA;
+	mScore = 0;
+	updateScore();
+}
+
+void Game::destroyAllEntities()
+{
+	for (auto e : mEntities)
+	{
+		delete e;
+	}
+	mEntities.clear();
+
+	for (auto e : mOldEntities)
+	{
+		delete e;
+	}
+	mOldEntities.clear();
+
+	for (auto e : mNewEntities)
+	{
+		delete e;
+	}
+	mNewEntities.clear();
+}
+
+void Game::editText(Text& text, string newText, Vector2f pos, Color color, unsigned int size)
+{
+	text.setString(newText);
+	text.setFont(mFont);
+	text.setCharacterSize(size);
+	text.setFillColor(color);
+	text.setOrigin(text.getLocalBounds().width * 0.5f, text.getLocalBounds().height * 0.5f);
+	text.setPosition(pos);
+}
+
+void Game::textInit()
+{
+	editText(mPauseText, "Paused", mRenderWindow.getView().getCenter(), Color::Red, 64);
+	editText(mGoText, "Game Over", mRenderWindow.getView().getCenter(), Color::Red, 72);
+	editText(mRestartText, "Press 'Space' to restart or 'Escape' to quit.", Vector2f(mGoText.getPosition().x, mGoText.getPosition().y + 70), Color::White, 20);
+	mScoreText.setFont(mFont);
+	mScoreText.setString("Score: ");
+	mScoreText.setCharacterSize(30);
+	mScoreText.setPosition(Vector2f(20, 20));
+}
+
+Font Game::loadFont(string fileName)
+{
+	Font font;
+	font.loadFromFile(fileName);
+	return font;
+}
+
+void Game::GameOver()
+{
+	currentState = GameState::gameOver;
+}
+
+void Game::updateScore()
+{
+	mScoreText.setString(mScoreText.getString().substring(0, 7) + to_string(mScore));
 }

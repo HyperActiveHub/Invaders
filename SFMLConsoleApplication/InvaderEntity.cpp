@@ -1,6 +1,7 @@
 #include "InvaderEntity.h"
 #include "ExplosionEntity.h"
 #include "BulletEntity.h"
+#include "PickupEntity.h"
 
 using namespace std;
 using namespace sf;
@@ -10,6 +11,7 @@ namespace
 	const float RADIUS = 32.0f;
 	const float VELOCITY = 200.0f;
 	const float FIRE_DELTA = 0.855f;
+	const float DROP_RATE = 10;	//10% drop chance.
 }
 
 InvaderEntity::InvaderEntity(Game* game, Vector2f position, Vector2f direction) :
@@ -24,29 +26,30 @@ InvaderEntity::InvaderEntity(Game* game, Vector2f position, Vector2f direction) 
 
 InvaderEntity::~InvaderEntity()
 {
-	cout << "Destroyed Invader" << endl;
+	//cout << "Destroyed Invader" << endl;
 }
 
 void InvaderEntity::update(float deltaTime)
 {
 	handleMovement(deltaTime);
-	handleFire(deltaTime);
-
-	Entity::update(deltaTime);
+	handleFire(deltaTime);	
 }
 
 void InvaderEntity::collide(Entity* other)
 {
 	if (other->getFaction() == EntityFaction::FRIEND)
 	{
-		if (other->getType() == EntityType::SHIP)	//use switch case for readability?
+		switch (other->getType())
 		{
-			//destroy player ship.
-		}
-		else if (other->getType() == EntityType::PROJECTILE)
-		{
-			mGame->add(new ExplosionEntity(mGame, mSprite.getPosition()));
-			mGame->remove(this);
+		case EntityType::SHIP:
+			//destroy player ship. Do nothing.
+			break;
+
+		case EntityType::PROJECTILE:
+			mGame->increaseScore();
+			dropPickup();
+			die();
+			break;
 		}
 	}
 
@@ -59,7 +62,7 @@ void InvaderEntity::handleMovement(float deltaTime)
 		mGame->remove(this);
 	}
 
-	//Bounce of walls
+	//Bounce off the walls
 	if (mDirection.x > 0 && mGame->getRenderWindow().getSize().x < getPosition().x + mRadius)
 	{
 		mDirection.x *= -1;
@@ -80,4 +83,20 @@ void InvaderEntity::handleFire(float deltaTime)
 		BulletEntity* bullet = new BulletEntity(mGame, getPosition(), Vector2f(0, 1), mFaction);
 		mFireTime = 0;
 	}
+}
+
+void InvaderEntity::dropPickup()
+{
+	int dropChance = rand() % 100 + 1;
+
+	if (dropChance <= DROP_RATE)
+	{
+		PickupEntity* pickup = new PickupEntity(mGame, getPosition(), PickupEntity::getRandPickup());
+	}
+}
+
+void InvaderEntity::die()
+{
+	mGame->add(new ExplosionEntity(mGame, mSprite.getPosition(), mFaction));
+	Entity::die();
 }

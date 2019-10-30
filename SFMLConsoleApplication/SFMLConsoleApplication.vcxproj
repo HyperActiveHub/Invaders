@@ -154,6 +154,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="InvaderEntity.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="PickupEntity.cpp" />
     <ClCompile Include="ShipEntity.cpp" />
     <ClCompile Include="TextureResource.cpp" />
   </ItemGroup>
@@ -163,6 +164,7 @@
     <ClInclude Include="ExplosionEntity.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="InvaderEntity.h" />
+    <ClInclude Include="PickupEntity.h" />
     <ClInclude Include="ShipEntity.h" />
     <ClInclude Include="TextureResource.h" />
   </ItemGroup>

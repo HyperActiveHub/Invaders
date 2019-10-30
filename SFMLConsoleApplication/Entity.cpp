@@ -12,6 +12,7 @@ Entity::Entity(Game* game, string filename, Vector2f position, float radius, Ent
 {
 	centerSprite();
 	mSprite.setPosition(position);
+	
 }
 
 Entity::~Entity()
@@ -19,9 +20,9 @@ Entity::~Entity()
 	
 }
 
-void Entity::update(float deltaTime)
+void Entity::die()
 {
-	mGame->getRenderWindow().draw(mSprite);
+	mGame->remove(this);
 }
 
 void Entity::centerSprite()

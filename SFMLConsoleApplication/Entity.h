@@ -14,13 +14,14 @@ class Entity
 public:
 	Entity(Game* game, std::string filename, Vector2f position, float radius, EntityType type, EntityFaction faction);
 	virtual ~Entity();
-	virtual void update(float deltaTime);
+	virtual void update(float deltaTime) = 0;
 	virtual void collide(Entity* other);
+	virtual void die();
+	virtual void draw();
 	float getRadius();
 	Vector2f getPosition();
 	EntityType getType();
 	EntityFaction getFaction();
-	void draw();
 
 protected:
 	void centerSprite();

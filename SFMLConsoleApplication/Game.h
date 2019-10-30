@@ -11,6 +11,7 @@ class Entity;			//Framåtdeklaration av typerna i Entity.h
 enum class EntityType;
 enum class EntityFaction;
 
+
 typedef vector<Entity*> EntityVector;
 typedef vector<TextureResource*> TextureResourceVector;
 
@@ -28,6 +29,9 @@ public:
 	void add(Entity* entity);
 	void remove(Entity* entity);
 	void shipHit();
+	void increaseScore();
+	void decreaseScore();
+	void GameOver();
 private:
 	sf::RenderWindow mRenderWindow;
 	TextureResourceVector mTextureResources;
@@ -37,9 +41,6 @@ private:
 									//på borttagna/nya objekt
 	float mTime;
 	float mSpawnDelta;
-	float mSpawnTime;
-	bool mGameOver;
-
 	EntityVector getVisibleEntities();
 	void createShip();
 	void createInvader();
@@ -56,6 +57,24 @@ private:
 	void setFrameRate(unsigned int);
 	void updateTime(float deltaTime);
 	void updateEntities(float deltaTime);
+	void updateScore();
+	void drawEntities();
 	void initRand();
+	void restartGame();
+	void destroyAllEntities();
+	void drawIngame();
+	void drawPaused();
+	void drawGameOver();
+	void update(float deltaTime);
 	int randValue(int min, int max);
+	int mScore;
+	void editText(Text& text, string newText, Vector2f pos, Color color, unsigned int size);
+	void textInit();
+	Font mFont;
+	Font loadFont(string fileName);
+	Text mPauseText;
+	Text mGoText;
+	Text mRestartText;
+	Text mScoreText;
+	Text mFinalScoreText;
 };
