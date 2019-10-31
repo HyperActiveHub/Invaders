@@ -11,11 +11,8 @@ class Entity;			//Framåtdeklaration av typerna i Entity.h
 enum class EntityType;
 enum class EntityFaction;
 
-
 typedef vector<Entity*> EntityVector;
 typedef vector<TextureResource*> TextureResourceVector;
-
-
 
 class Game
 {
@@ -28,7 +25,6 @@ public:
 	void run();
 	void add(Entity* entity);
 	void remove(Entity* entity);
-	void shipHit();
 	void increaseScore();
 	void decreaseScore();
 	void GameOver();
@@ -40,12 +36,11 @@ private:
 	EntityVector mOldEntities;		//under nästa iteration av loopen. Detta görs för att kunna gå igenom mEntities utan att stöta
 									//på borttagna/nya objekt
 	float mTime;
+	float mSpawnDecreaseTime;
 	float mSpawnDelta;
 	EntityVector getVisibleEntities();
 	void createShip();
 	void createInvader();
-	void spawnInvader(float deltaTime);
-	void spawnShip();
 	void destroyOldEntities();
 	void addNewEntities();
 	bool overlap(Entity*, Entity*);

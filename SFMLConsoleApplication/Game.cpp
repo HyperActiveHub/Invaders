@@ -1,9 +1,8 @@
+#include <iostream>			
 #include "Game.h"
 #include "ShipEntity.h"	
 #include "InvaderEntity.h"		//Cirkulärt beroende kräver att dessa inkluderas i game.cpp istället för game.h, 
-//samt att framåtdeklarationer av typerna Entity, EnttiyType och EntityFaction.
-
-#include <iostream>
+								//samt att framåtdeklarationer av typerna Entity, EnttiyType och EntityFaction.
 
 using namespace std;
 using namespace sf;
@@ -13,8 +12,9 @@ namespace
 	enum class GameState { ingame, paused, gameOver };
 	GameState currentState = GameState::ingame;
 
-	const float ENEMY_SPAWN_DELTA = 2.0f;	//placeholder
+	const float ENEMY_SPAWN_DELTA = 2.0f;
 	const float ENEMY_DELTA_DECREASE_RATE = 0.99f;
+	const float ENEMY_DELTA_DECREASE_TIME = 2.0f;
 
 	const int ENEMY_VALUE = 100;
 	const int BULLET_COST = 10;
@@ -32,6 +32,7 @@ Game::Game() :
 	mOldEntities(),
 	mNewEntities(),
 	mTime(0),
+	mSpawnDecreaseTime(0),
 	mSpawnDelta(ENEMY_SPAWN_DELTA),
 	mScore(0),
 	mFont(loadFont("SHOWG.TTF")),
@@ -148,7 +149,7 @@ void Game::createShip()
 void Game::createInvader()
 {
 	int x = randValue(0, getRenderWindow().getSize().x);
-	int y = -50;	//Temp y-axis spawnPos.
+	int y = -50;
 	Vector2f spawnPos((float)x, (float)y);
 	Vector2f direction(0, 1);
 
@@ -327,14 +328,19 @@ void Game::display()
 
 void Game::updateTime(float deltaTime)
 {
-	//clock.reset? stuff?
 	mTime += deltaTime;
+	mSpawnDecreaseTime += deltaTime;
+
+	if (ENEMY_DELTA_DECREASE_TIME < mSpawnDecreaseTime)
+	{
+		mSpawnDelta *= ENEMY_DELTA_DECREASE_RATE;
+		mSpawnDecreaseTime = 0;
+	}
+
 	if (mSpawnDelta < mTime)
 	{
 		createInvader();
 		mTime = 0;
-		mSpawnDelta *= ENEMY_DELTA_DECREASE_RATE;
-		cout << mSpawnDelta << endl;
 	}
 }
 
@@ -360,12 +366,12 @@ void Game::drawEntities()
 
 void Game::add(Entity* entity)
 {
-	mNewEntities.push_back(entity); //correct?
+	mNewEntities.push_back(entity); 
 }
 
 void Game::remove(Entity* entity)
 {
-	mOldEntities.push_back(entity); //correct?
+	mOldEntities.push_back(entity);
 }
 
 void Game::setFrameRate(unsigned int rate)
@@ -399,23 +405,25 @@ void Game::restartGame()
 
 void Game::destroyAllEntities()
 {
-	for (auto e : mEntities)
+	/*for (auto e : mOldEntities)
 	{
 		delete e;
 	}
-	mEntities.clear();
+	mOldEntities.clear();*/
 
-	for (auto e : mOldEntities)
-	{
-		delete e;
-	}
-	mOldEntities.clear();
+	destroyOldEntities();
 
 	for (auto e : mNewEntities)
 	{
 		delete e;
 	}
 	mNewEntities.clear();
+
+	for (auto e : mEntities)
+	{
+		delete e;
+	}
+	mEntities.clear();
 }
 
 void Game::editText(Text& text, string newText, Vector2f pos, Color color, unsigned int size)
